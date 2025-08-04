@@ -1,9 +1,9 @@
 package archive
 
 import (
-	"AutoBuckupG/internal/config"
-	"AutoBuckupG/internal/log"
-	"AutoBuckupG/internal/util"
+	"AutoBuckup/internal/config"
+	"AutoBuckup/internal/log"
+	"AutoBuckup/internal/util"
 	"archive/tar"
 	"compress/gzip"
 	"fmt"

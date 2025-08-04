@@ -1,9 +1,10 @@
 package main
 
 import (
-	"AutoBuckupG/internal/config"
-	"AutoBuckupG/internal/log"
-	"AutoBuckupG/internal/services"
+	"AutoBuckup/internal/config"
+	"AutoBuckup/internal/log"
+	"AutoBuckup/internal/services"
+	"gopkg.in/yaml.v3"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,6 +16,13 @@ func main() {
 	readConfig := config.ReadConfig()
 	if readConfig == nil {
 		log.Logger.Fatal("Can't read config")
+	}
+	if readConfig.Debug {
+		marshal, err := yaml.Marshal(readConfig)
+		if err != nil {
+			os.Exit(1)
+		}
+		log.Logger.Debug(string(marshal))
 	}
 
 	services.AutoBackup(readConfig)

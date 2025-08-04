@@ -1,8 +1,8 @@
 package remote
 
 import (
-	"AutoBuckupG/internal/config"
-	"AutoBuckupG/internal/log"
+	"AutoBuckup/internal/config"
+	"AutoBuckup/internal/log"
 	"fmt"
 	"io"
 	"os"

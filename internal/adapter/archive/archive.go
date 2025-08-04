@@ -1,6 +1,6 @@
 package archive
 
-import "AutoBuckupG/internal/config"
+import "AutoBuckup/internal/config"
 
 const (
 	TypeTarGz = "tar.gz"

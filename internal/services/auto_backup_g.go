@@ -1,9 +1,9 @@
 package services
 
 import (
-	"AutoBuckupG/internal/config"
-	"AutoBuckupG/internal/log"
-	"AutoBuckupG/internal/util"
+	"AutoBuckup/internal/config"
+	"AutoBuckup/internal/log"
+	"AutoBuckup/internal/util"
 	"github.com/robfig/cron/v3"
 	"os"
 )

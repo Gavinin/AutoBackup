@@ -1,8 +1,8 @@
 package services
 
 import (
-	"AutoBuckupG/internal/adapter/remote"
-	"AutoBuckupG/internal/config"
+	"AutoBuckup/internal/adapter/remote"
+	"AutoBuckup/internal/config"
 	"strings"
 )
 
