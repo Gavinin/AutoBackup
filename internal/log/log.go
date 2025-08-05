@@ -18,10 +18,8 @@ func Init() {
 		rotatelogs.WithRotationTime(24*time.Hour),
 	)
 
-	// 2. 控制台输出
 	consoleWriter := zapcore.Lock(os.Stdout)
 
-	// 3. 编码器
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 
@@ -30,17 +28,19 @@ func Init() {
 		zapcore.AddSync(fileWriter),
 		zap.InfoLevel,
 	)
-
+	consolEncoderConfig := zap.NewDevelopmentEncoderConfig()
+	consolEncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+	consolEncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	consoleCore := zapcore.NewCore(
-		zapcore.NewConsoleEncoder(encoderConfig),
+		zapcore.NewConsoleEncoder(consolEncoderConfig),
 		consoleWriter,
 		zap.InfoLevel,
 	)
 
-	// 4. 合并两个 core
 	core := zapcore.NewTee(fileCore, consoleCore)
 
-	logger := zap.New(core)
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 	defer logger.Sync()
 	Logger = logger.Sugar()
+
 }
