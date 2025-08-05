@@ -34,6 +34,7 @@ type Archive struct {
 	NameFormat   string `yaml:"nameFormat"`
 	SortByDate   bool   `yaml:"SortByDate"`
 	TmpFilePath  string `yaml:"tmpFilePath,omitempty"`
+	StoreExpired int    `yaml:"storeExpired"`
 }
 
 func ReadConfig() *Config {

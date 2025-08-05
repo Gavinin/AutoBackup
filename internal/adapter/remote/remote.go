@@ -8,4 +8,5 @@ type IFileTransProtocol interface {
 	Mkdir(path string) error
 	Disconnect() error
 	Delete(filePath string) error
+	Ls(path string) ([]string, error)
 }

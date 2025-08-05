@@ -22,6 +22,22 @@ type Sftp struct {
 	sshClient   *ssh.Client
 }
 
+func (s *Sftp) Ls(path string) ([]string, error) {
+	dirs := make([]string, 0)
+
+	dir, err := s.sftpClient.ReadDir(path)
+	if err != nil {
+		return dirs, err
+	}
+	for _, info := range dir {
+		if !info.IsDir() {
+			dirs = append(dirs, info.Name())
+		}
+	}
+
+	return dirs, nil
+}
+
 func (s *Sftp) Delete(filePath string) error {
 	return s.sftpClient.Remove(filePath)
 }
@@ -34,7 +50,6 @@ func (s *Sftp) Connect() error {
 			log.Logger.Errorf("Unable to read key file: %v", err)
 		}
 
-		// 解析私钥
 		signer, err := ssh.ParsePrivateKey(key)
 		if err != nil {
 			log.Logger.Errorf("Can't parse key: %v", err)
@@ -42,13 +57,14 @@ func (s *Sftp) Connect() error {
 
 		authMethods = append(authMethods, ssh.PublicKeys(signer))
 
-	} else {
+	}
+	if s.Password != "" {
 		authMethods = append(authMethods, ssh.Password(s.Password))
 	}
 	sshConfig := &ssh.ClientConfig{
 		User:            s.Username,
 		Auth:            authMethods,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // 生产环境建议替换为安全的回调
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
 	addr := fmt.Sprintf("%s:%s", s.Host, s.Port)
@@ -87,7 +103,7 @@ func (s *Sftp) Upload(file *os.File, filePath, fileName string) error {
 		return err
 	}
 
-	log.Logger.Info("update %s successfully", fileName)
+	log.Logger.Infof("update %s successfully", fileName)
 	return nil
 }
 func (s *Sftp) Mkdir(path string) error {

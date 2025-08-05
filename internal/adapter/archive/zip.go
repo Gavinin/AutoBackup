@@ -5,8 +5,7 @@ import (
 	"AutoBuckup/internal/enum"
 	"AutoBuckup/internal/log"
 	"AutoBuckup/internal/util"
-	"archive/tar"
-	"compress/gzip"
+	"archive/zip"
 	"fmt"
 	"io"
 	"os"
@@ -14,14 +13,13 @@ import (
 	"strings"
 )
 
-type TagGz struct {
+type ZipStore struct{}
+
+func NewZipStore() *ZipStore {
+	return &ZipStore{}
 }
 
-func NewTagGz() *TagGz {
-	return &TagGz{}
-}
-
-func (t TagGz) BatchArchive(archive config.Archive, paths []string) ([]string, error) {
+func (z *ZipStore) BatchArchive(archive config.Archive, paths []string) ([]string, error) {
 	results := make([]string, 0)
 
 	for _, path := range paths {
@@ -33,23 +31,23 @@ func (t TagGz) BatchArchive(archive config.Archive, paths []string) ([]string, e
 			continue
 		}
 
-		path, err := TagGzFolder(archive, path)
+		zipPath, err := ZipStoreFolder(archive, path)
 		if err != nil {
 			log.Logger.Error(err)
 		} else {
-			results = append(results, path)
+			results = append(results, zipPath)
 		}
 	}
 
 	return results, nil
 }
 
-func TagGzFolder(archive config.Archive, path string) (string, error) {
+func ZipStoreFolder(archive config.Archive, path string) (string, error) {
 	_, folderName := util.SeparatePath(path)
 	if archive.SortByDate {
 		folderName = util.GetFolderName(archive.NameFormat, folderName)
 	}
-	filePathStr := fmt.Sprintf("%s/%s%s", archive.TmpFilePath, folderName, util.GetExt(enum.TypeTarGz))
+	filePathStr := fmt.Sprintf("%s/%s%s", archive.TmpFilePath, folderName, util.GetExt(enum.TypeZipStore))
 	filePath := filepath.Join(filePathStr)
 	f, err := os.Create(filePath)
 	if err != nil {
@@ -57,49 +55,48 @@ func TagGzFolder(archive config.Archive, path string) (string, error) {
 	}
 	defer f.Close()
 
-	// create gzip writer
-	gw := gzip.NewWriter(f)
-	defer gw.Close()
-
-	// create tar writer
-	tw := tar.NewWriter(gw)
-	defer tw.Close()
+	zw := zip.NewWriter(f)
+	defer zw.Close()
 
 	err = filepath.Walk(path, func(fileName string, fi os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-
-		hdr, err := tar.FileInfoHeader(fi, "")
-		if err != nil {
-			return err
-		}
-
-		hdr.Name = strings.TrimPrefix(fileName, string(filepath.Separator))
-
-		// 写入文件信息
-		if err := tw.WriteHeader(hdr); err != nil {
-			return err
-		}
-
-		if !fi.Mode().IsRegular() {
+		// 目录不需要写入
+		if fi.IsDir() {
 			return nil
 		}
 
-		// open file
-		fr, err := os.Open(fileName)
-		defer fr.Close()
+		relPath, err := filepath.Rel(filepath.Dir(path), fileName)
+		if err != nil {
+			return err
+		}
+		relPath = strings.ReplaceAll(relPath, "\\", "/") // 兼容windows
+
+		header, err := zip.FileInfoHeader(fi)
+		if err != nil {
+			return err
+		}
+		header.Name = relPath
+		header.Method = zip.Store // 仅存储不压缩
+
+		writer, err := zw.CreateHeader(header)
 		if err != nil {
 			return err
 		}
 
-		n, err := io.Copy(tw, fr)
+		fr, err := os.Open(fileName)
+		if err != nil {
+			return err
+		}
+		defer fr.Close()
+
+		n, err := io.Copy(writer, fr)
 		if err != nil {
 			return err
 		}
 
 		log.Logger.Debug("Success save %s ，Write: %d bytes\n", fileName, n)
-
 		return nil
 	})
 
