@@ -25,13 +25,6 @@ func (t TagGz) BatchArchive(archive config.Archive, paths []string) ([]string, e
 	results := make([]string, 0)
 
 	for _, path := range paths {
-		if path == "" {
-			continue
-		}
-		if !PathExists(path) {
-			log.Logger.Fatalf("Path does not exist: %s", path)
-			continue
-		}
 
 		path, err := TagGzFolder(archive, path)
 		if err != nil {

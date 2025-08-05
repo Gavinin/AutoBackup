@@ -3,6 +3,7 @@ package util
 import (
 	"AutoBuckup/internal/enum"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 )
@@ -34,4 +35,15 @@ func GetFolderName(nameFormat, folderName string) string {
 	timeFormatStr := time.Now().Format(NameFormat2DateFormat(nameFormat))
 	folderName = fmt.Sprintf("%s%s%s", folderName, enum.FolderSeparateFlag, timeFormatStr)
 	return folderName
+}
+
+func PathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
 }

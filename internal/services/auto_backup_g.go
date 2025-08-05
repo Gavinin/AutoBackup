@@ -42,7 +42,18 @@ func backupAndUpload(cfg *config.Config) {
 
 	archiveClient := SelectArchive(cfg)
 
-	archive, err := archiveClient.BatchArchive(cfg.Archive, cfg.Directory)
+	collector := SelectFolderCollector(cfg)
+	list, err := collector.GetFolderList(cfg.Directory)
+	if err != nil {
+		log.Logger.Error(err)
+		return
+	}
+	if len(list) == 0 {
+		log.Logger.Error("No auto_backup directory specified")
+		return
+	}
+
+	archive, err := archiveClient.BatchArchive(cfg.Archive, list)
 	if err != nil {
 		log.Logger.Error(err)
 		return
