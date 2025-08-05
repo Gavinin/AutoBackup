@@ -10,12 +10,14 @@ import (
 )
 
 type Config struct {
-	AppName   string   `yaml:"appName"`
-	Directory []string `yaml:"directory"`
-	Cron      string   `yaml:"cron"`
-	Debug     bool     `yaml:"debug,omitempty"`
-	Remote    Remote   `yaml:"remote"`
-	Archive   Archive  `yaml:"archive"`
+	AppName    string   `yaml:"appName"`
+	Directory  []string `yaml:"directory"`
+	Cron       string   `yaml:"cron"`
+	Docker     bool     `yaml:"docker"`
+	Debug      bool     `yaml:"debug,omitempty"`
+	Remote     Remote   `yaml:"remote"`
+	Archive    Archive  `yaml:"archive"`
+	HideFolder bool     `yaml:"hideFolder"`
 }
 
 type Remote struct {
@@ -62,6 +64,19 @@ func ReadConfig() *Config {
 	}
 	if cfg.Archive.TmpFilePath[len(cfg.Archive.TmpFilePath)-1] == '/' {
 		cfg.Archive.TmpFilePath = cfg.Archive.TmpFilePath[:len(cfg.Archive.TmpFilePath)-1]
+	}
+
+	for i, s := range cfg.Directory {
+		if s == "" || s == "/" {
+			continue
+		}
+		if s[len(s)-1:] == "/" {
+			cfg.Directory[i] = s[:len(s)-1]
+		}
+	}
+
+	if cfg.Docker {
+		cfg.Directory = append(cfg.Directory, "/data")
 	}
 
 	return &cfg

@@ -23,13 +23,6 @@ func (z *ZipStore) BatchArchive(archive config.Archive, paths []string) ([]strin
 	results := make([]string, 0)
 
 	for _, path := range paths {
-		if path == "" {
-			continue
-		}
-		if !PathExists(path) {
-			log.Logger.Fatalf("Path does not exist: %s", path)
-			continue
-		}
 
 		zipPath, err := ZipStoreFolder(archive, path)
 		if err != nil {
